@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Ride - Cab Booking System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cab Booking System</h1>
+            <p>Search and book rides</p>
+        </div>
+        
+        <div class="content">
+            <div id="alert-container"></div>
+            
+            <form id="searchRideForm">
+                <div class="form-group">
+                    <label for="source">Source</label>
+                    <input type="text" id="source" name="source" required placeholder="Enter pickup location">
+                </div>
+                
+                <div class="form-group">
+                    <label for="destination">Destination</label>
+                    <input type="text" id="destination" name="destination" required placeholder="Enter destination">
+                </div>
+                
+                <button type="submit" class="btn" id="searchBtn">🔍 Search Rides</button>
+                <button type="button" class="btn" onclick="window.location.href='dashboard.html'">⬅️ Back to Dashboard</button>
+            </form>
+            
+            <div id="searchResults" style="display: none;">
+                <h3>Available Rides</h3>
+                <div class="table-container">
+                    <table id="ridesTable">
+                        <thead>
+                            <tr>
+                                <th>Ride ID</th>
+                                <th>Route</th>
+                                <th>Seats Available</th>
+                                <th>Fare per Seat</th>
+                                <th>Seats to Book</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ridesTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        let availableRides = [];
+
+        window.addEventListener('load', function() {
+            if (!checkAuth()) {
+                return;
+            }
+        });
+
+        document.getElementById('searchRideForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const source = document.getElementById('source').value.trim();
+            const destination = document.getElementById('destination').value.trim();
+            const searchBtn = document.getElementById('searchBtn');
+            const originalText = searchBtn.textContent;
+            
+            if (!source || !destination) {
+                showAlert('Please enter both source and destination', 'error');
+                return;
+            }
+            
+            disableButton(searchBtn);
+            
+            try {
+                const response = await searchRides(source, destination);
+                
+                if (response.success || Array.isArray(response)) {
+                    availableRides = Array.isArray(response) ? response : response.rides || [];
+                    displayRides(availableRides);
+                    
+                    if (availableRides.length === 0) {
+                        showAlert('No rides found for this route', 'error');
+                        document.getElementById('searchResults').style.display = 'none';
+                    } else {
+                        showAlert(`Found ${availableRides.length} ride(s)`, 'success');
+                    }
+                } else {
+                    showAlert(response.message || 'No rides found', 'error');
+                    document.getElementById('searchResults').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Search rides error:', error);
+                showAlert('Failed to search rides. Please try again.', 'error');
+            } finally {
+                enableButton(searchBtn, originalText);
+            }
+        });
+
+        function displayRides(rides) {
+            const tbody = document.getElementById('ridesTableBody');
+            tbody.innerHTML = '';
+            
+            rides.forEach(ride => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${ride.rideId}</td>
+                    <td>${ride.source} → ${ride.destination}</td>
+                    <td>${ride.availableSeats || ride.seatsAvailable}</td>
+                    <td>$${ride.farePerSeat}</td>
+                    <td>
+                        <input type="number" 
+                               id="seats-${ride.rideId}" 
+                               min="1" 
+                               max="${ride.availableSeats || ride.seatsAvailable}" 
+                               value="1" 
+                               style="width: 80px; padding: 5px;">
+                    </td>
+                    <td>
+                        <button class="btn btn-success" onclick="bookRide('${ride.rideId}')">
+                            Book Ride
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            document.getElementById('searchResults').style.display = 'block';
+        }
+
+        async function bookRide(rideId) {
+            const seatsInput = document.getElementById(`seats-${rideId}`);
+            const seatsToBook = parseInt(seatsInput.value);
+            const ride = availableRides.find(r => r.rideId === rideId);
+            
+            if (!seatsToBook || seatsToBook < 1) {
+                showAlert('Please enter valid number of seats', 'error');
+                return;
+            }
+            
+            if (seatsToBook > (ride.availableSeats || ride.seatsAvailable)) {
+                showAlert('Not enough seats available', 'error');
+                return;
+            }
+            
+            const totalFare = seatsToBook * ride.farePerSeat;
+            
+            if (!confirm(`Book ${seatsToBook} seat(s) for $${totalFare.toFixed(2)}?`)) {
+                return;
+            }
+            
+            try {
+                const userId = getUserId();
+                const bookingData = {
+                    userId: userId,
+                    rideId: rideId,
+                    seatsBooked: seatsToBook
+                };
+                
+                const response = await bookRide(bookingData);
+                
+                if (response.success || response.bookingId) {
+                    showAlert(`Booking successful! Booking ID: ${response.bookingId || response.bookingId}. Total fare: $${totalFare.toFixed(2)}`, 'success');
+                    
+                    // Refresh the search results to update available seats
+                    setTimeout(() => {
+                        document.getElementById('searchRideForm').dispatchEvent(new Event('submit'));
+                    }, 2000);
+                } else {
+                    showAlert(response.message || 'Booking failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Book ride error:', error);
+                showAlert('Booking failed. Please try again.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

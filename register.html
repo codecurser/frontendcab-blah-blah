@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Cab Booking System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cab Booking System</h1>
+            <p>Create a new account</p>
+        </div>
+        
+        <div class="content">
+            <div id="alert-container"></div>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" required placeholder="Enter your email address">
+                </div>
+                
+                <button type="submit" class="btn" id="registerBtn">Register</button>
+            </form>
+            
+            <div class="auth-links">
+                <p>Already have an account? <a href="login.html">Login here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const registerBtn = document.getElementById('registerBtn');
+            const originalText = registerBtn.textContent;
+            
+            if (!name || !email) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+            
+            disableButton(registerBtn);
+            
+            try {
+                const response = await registerUser(name, email);
+                
+                if (response.success || response.userId) {
+                    const userId = response.userId || response.userId;
+                    saveUserId(userId);
+                    showAlert(`Registration successful! Your User ID is: ${userId}. Redirecting to dashboard...`, 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 3000);
+                } else {
+                    showAlert(response.message || 'Registration failed. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                showAlert('Registration failed. Please try again.', 'error');
+            } finally {
+                enableButton(registerBtn, originalText);
+            }
+        });
+
+        // Check if user is already logged in
+        window.addEventListener('load', function() {
+            const userId = getUserId();
+            if (userId) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>

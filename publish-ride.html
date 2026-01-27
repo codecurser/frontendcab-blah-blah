@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publish Ride - Cab Booking System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cab Booking System</h1>
+            <p>Publish a new ride</p>
+        </div>
+        
+        <div class="content">
+            <div id="alert-container"></div>
+            
+            <form id="publishRideForm">
+                <div class="form-group">
+                    <label for="source">Source</label>
+                    <input type="text" id="source" name="source" required placeholder="Enter pickup location">
+                </div>
+                
+                <div class="form-group">
+                    <label for="destination">Destination</label>
+                    <input type="text" id="destination" name="destination" required placeholder="Enter destination">
+                </div>
+                
+                <div class="form-group">
+                    <label for="totalSeats">Total Seats</label>
+                    <input type="number" id="totalSeats" name="totalSeats" required min="1" max="10" placeholder="Number of available seats">
+                </div>
+                
+                <div class="form-group">
+                    <label for="farePerSeat">Fare per Seat ($)</label>
+                    <input type="number" id="farePerSeat" name="farePerSeat" required min="0" step="0.01" placeholder="Fare per seat">
+                </div>
+                
+                <button type="submit" class="btn btn-success" id="publishBtn">🚗 Publish Ride</button>
+                <button type="button" class="btn" onclick="window.location.href='dashboard.html'">⬅️ Back to Dashboard</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            if (!checkAuth()) {
+                return;
+            }
+        });
+
+        document.getElementById('publishRideForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const source = document.getElementById('source').value.trim();
+            const destination = document.getElementById('destination').value.trim();
+            const totalSeats = parseInt(document.getElementById('totalSeats').value);
+            const farePerSeat = parseFloat(document.getElementById('farePerSeat').value);
+            const publishBtn = document.getElementById('publishBtn');
+            const originalText = publishBtn.textContent;
+            
+            if (!source || !destination || !totalSeats || !farePerSeat) {
+                showAlert('Please fill in all fields', 'error');
+                return;
+            }
+            
+            if (totalSeats < 1 || totalSeats > 10) {
+                showAlert('Total seats must be between 1 and 10', 'error');
+                return;
+            }
+            
+            if (farePerSeat < 0) {
+                showAlert('Fare must be a positive number', 'error');
+                return;
+            }
+            
+            disableButton(publishBtn);
+            
+            try {
+                const userId = getUserId();
+                const rideData = {
+                    userId: userId,
+                    source: source,
+                    destination: destination,
+                    totalSeats: totalSeats,
+                    farePerSeat: farePerSeat
+                };
+                
+                const response = await publishRide(rideData);
+                
+                if (response.success || response.rideId) {
+                    showAlert('Ride published successfully! Redirecting to dashboard...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                } else {
+                    showAlert(response.message || 'Failed to publish ride. Please try again.', 'error');
+                }
+            } catch (error) {
+                console.error('Publish ride error:', error);
+                showAlert('Failed to publish ride. Please try again.', 'error');
+            } finally {
+                enableButton(publishBtn, originalText);
+            }
+        });
+    </script>
+</body>
+</html>

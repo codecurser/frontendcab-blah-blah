@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Rides - Cab Booking System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cab Booking System</h1>
+            <p>My Published Rides</p>
+        </div>
+        
+        <div class="content">
+            <div id="alert-container"></div>
+            
+            <button class="btn" onclick="loadMyRides()">🔄 Refresh</button>
+            <button class="btn" onclick="window.location.href='dashboard.html'">⬅️ Back to Dashboard</button>
+            
+            <div class="table-container">
+                <table id="myRidesTable">
+                    <thead>
+                        <tr>
+                            <th>Ride ID</th>
+                            <th>Route</th>
+                            <th>Seats Left</th>
+                            <th>Fare per Seat</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myRidesTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center;">Loading your rides...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            if (!checkAuth()) {
+                return;
+            }
+            loadMyRides();
+        });
+
+        async function loadMyRides() {
+            try {
+                const userId = getUserId();
+                const response = await getMyRides(userId);
+                
+                if (response.success || Array.isArray(response)) {
+                    const rides = Array.isArray(response) ? response : response.rides || [];
+                    displayMyRides(rides);
+                    
+                    if (rides.length === 0) {
+                        document.getElementById('myRidesTableBody').innerHTML = 
+                            '<tr><td colspan="6" style="text-align: center;">No rides published yet</td></tr>';
+                    }
+                } else {
+                    showAlert(response.message || 'Failed to load rides', 'error');
+                    document.getElementById('myRidesTableBody').innerHTML = 
+                        '<tr><td colspan="6" style="text-align: center;">Failed to load rides</td></tr>';
+                }
+            } catch (error) {
+                console.error('Load my rides error:', error);
+                showAlert('Failed to load rides. Please try again.', 'error');
+                document.getElementById('myRidesTableBody').innerHTML = 
+                    '<tr><td colspan="6" style="text-align: center;">Error loading rides</td></tr>';
+            }
+        }
+
+        function displayMyRides(rides) {
+            const tbody = document.getElementById('myRidesTableBody');
+            tbody.innerHTML = '';
+            
+            rides.forEach(ride => {
+                const row = document.createElement('tr');
+                const status = ride.status || 'OPEN';
+                const canCancel = status === 'OPEN';
+                
+                row.innerHTML = `
+                    <td>${ride.rideId}</td>
+                    <td>${ride.source} → ${ride.destination}</td>
+                    <td>${ride.availableSeats || ride.seatsLeft}</td>
+                    <td>$${ride.farePerSeat}</td>
+                    <td>
+                        <span style="color: ${status === 'OPEN' ? 'green' : 'red'}; font-weight: bold;">
+                            ${status}
+                        </span>
+                    </td>
+                    <td>
+                        ${canCancel ? 
+                            `<button class="btn btn-danger" onclick="cancelRide('${ride.rideId}')">
+                                Cancel Ride
+                            </button>` : 
+                            '<span style="color: #888;">Cannot cancel</span>'
+                        }
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function cancelRide(rideId) {
+            if (!confirm('Are you sure you want to cancel this ride? This action cannot be undone.')) {
+                return;
+            }
+            
+            try {
+                const response = await cancelRide(rideId);
+                
+                if (response.success) {
+                    showAlert('Ride cancelled successfully', 'success');
+                    // Refresh the rides list
+                    setTimeout(() => {
+                        loadMyRides();
+                    }, 1000);
+                } else {
+                    showAlert(response.message || 'Failed to cancel ride', 'error');
+                }
+            } catch (error) {
+                console.error('Cancel ride error:', error);
+                showAlert('Failed to cancel ride. Please try again.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings - Cab Booking System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cab Booking System</h1>
+            <p>My Ride Bookings</p>
+        </div>
+        
+        <div class="content">
+            <div id="alert-container"></div>
+            
+            <button class="btn" onclick="loadMyBookings()">🔄 Refresh</button>
+            <button class="btn" onclick="window.location.href='dashboard.html'">⬅️ Back to Dashboard</button>
+            
+            <div class="table-container">
+                <table id="myBookingsTable">
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Route</th>
+                            <th>Seats Booked</th>
+                            <th>Total Fare</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myBookingsTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center;">Loading your bookings...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            if (!checkAuth()) {
+                return;
+            }
+            loadMyBookings();
+        });
+
+        async function loadMyBookings() {
+            try {
+                const userId = getUserId();
+                const response = await getMyBookings(userId);
+                
+                if (response.success || Array.isArray(response)) {
+                    const bookings = Array.isArray(response) ? response : response.bookings || [];
+                    displayMyBookings(bookings);
+                    
+                    if (bookings.length === 0) {
+                        document.getElementById('myBookingsTableBody').innerHTML = 
+                            '<tr><td colspan="6" style="text-align: center;">No bookings found</td></tr>';
+                    }
+                } else {
+                    showAlert(response.message || 'Failed to load bookings', 'error');
+                    document.getElementById('myBookingsTableBody').innerHTML = 
+                        '<tr><td colspan="6" style="text-align: center;">Failed to load bookings</td></tr>';
+                }
+            } catch (error) {
+                console.error('Load my bookings error:', error);
+                showAlert('Failed to load bookings. Please try again.', 'error');
+                document.getElementById('myBookingsTableBody').innerHTML = 
+                    '<tr><td colspan="6" style="text-align: center;">Error loading bookings</td></tr>';
+            }
+        }
+
+        function displayMyBookings(bookings) {
+            const tbody = document.getElementById('myBookingsTableBody');
+            tbody.innerHTML = '';
+            
+            bookings.forEach(booking => {
+                const row = document.createElement('tr');
+                const status = booking.status || 'CONFIRMED';
+                const canCancel = status === 'CONFIRMED';
+                const totalFare = booking.totalFare || (booking.seatsBooked * booking.farePerSeat);
+                
+                row.innerHTML = `
+                    <td>${booking.bookingId}</td>
+                    <td>${booking.source} → ${booking.destination}</td>
+                    <td>${booking.seatsBooked}</td>
+                    <td>$${totalFare.toFixed(2)}</td>
+                    <td>
+                        <span style="color: ${status === 'CONFIRMED' ? 'green' : 'red'}; font-weight: bold;">
+                            ${status}
+                        </span>
+                    </td>
+                    <td>
+                        ${canCancel ? 
+                            `<button class="btn btn-danger" onclick="cancelBooking('${booking.bookingId}')">
+                                Cancel Booking
+                            </button>` : 
+                            '<span style="color: #888;">Cannot cancel</span>'
+                        }
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        async function cancelBooking(bookingId) {
+            if (!confirm('Are you sure you want to cancel this booking? Seats will be restored to the ride.')) {
+                return;
+            }
+            
+            try {
+                const userId = getUserId();
+                const response = await cancelBooking(bookingId, userId);
+                
+                if (response.success) {
+                    showAlert('Booking cancelled successfully. Seats have been restored.', 'success');
+                    // Refresh the bookings list
+                    setTimeout(() => {
+                        loadMyBookings();
+                    }, 1000);
+                } else {
+                    showAlert(response.message || 'Failed to cancel booking', 'error');
+                }
+            } catch (error) {
+                console.error('Cancel booking error:', error);
+                showAlert('Failed to cancel booking. Please try again.', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

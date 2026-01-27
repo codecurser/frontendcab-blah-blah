@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Cab Booking System</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Cab Booking System</h1>
+            <p>Login to your account</p>
+        </div>
+        
+        <div class="content">
+            <div id="alert-container"></div>
+            
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="userId">User ID</label>
+                    <input type="text" id="userId" name="userId" required placeholder="Enter your User ID">
+                </div>
+                
+                <button type="submit" class="btn" id="loginBtn">Login</button>
+            </form>
+            
+            <div class="auth-links">
+                <p>Don't have an account? <a href="register.html">Register new user</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const userId = document.getElementById('userId').value.trim();
+            const loginBtn = document.getElementById('loginBtn');
+            const originalText = loginBtn.textContent;
+            
+            if (!userId) {
+                showAlert('Please enter your User ID', 'error');
+                return;
+            }
+            
+            disableButton(loginBtn);
+            
+            try {
+                const response = await loginUser(userId);
+                
+                if (response.success || response.userId) {
+                    saveUserId(userId);
+                    showAlert('Login successful! Redirecting to dashboard...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                } else {
+                    showAlert(response.message || 'Login failed. Please check your User ID.', 'error');
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                showAlert('Login failed. Please try again.', 'error');
+            } finally {
+                enableButton(loginBtn, originalText);
+            }
+        });
+
+        // Check if user is already logged in
+        window.addEventListener('load', function() {
+            const userId = getUserId();
+            if (userId) {
+                window.location.href = 'dashboard.html';
+            }
+        });
+    </script>
+</body>
+</html>
