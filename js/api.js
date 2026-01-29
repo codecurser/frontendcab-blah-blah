@@ -1,7 +1,7 @@
 // Detect environment and set appropriate BASE_URL
 const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? "http://localhost:8080" 
-    : "https://your-backend-url.com"; // Replace this with your deployed backend URL
+    : "https://your-ngrok-url.ngrok.io"; // Replace with your ngrok URL
 
 // User APIs
 async function loginUser(userId) {
