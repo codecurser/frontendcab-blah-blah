@@ -5,15 +5,34 @@ const BASE_URL = window.location.hostname === 'localhost' || window.location.hos
 
 // User APIs
 async function loginUser(userId) {
-    const response = await fetch(`${BASE_URL}/users/login?userId=${userId}`);
-    return await response.json();
+    console.log('=== LOGIN DEBUG ===');
+    console.log('BASE_URL:', BASE_URL);
+    console.log('Full URL:', `${BASE_URL}/users/login?userId=${userId}`);
+    
+    try {
+        const response = await fetch(`${BASE_URL}/users/login?userId=${userId}`, {
+            method: 'POST',
+            headers: { 
+                'Accept': 'application/json'
+            },
+            mode: 'cors'
+        });
+        
+        console.log('Login response status:', response.status);
+        console.log('Login response ok:', response.ok);
+        
+        const result = await response.json();
+        console.log('Login response:', result);
+        
+        return result;
+    } catch (error) {
+        console.error('Login error:', error);
+        throw error;
+    }
 }
 
 async function registerUser(name, email) {
     console.log('=== REGISTRATION DEBUG ===');
-    console.log('BASE_URL:', BASE_URL);
-    console.log('Full URL:', `${BASE_URL}/users/register`);
-    console.log('Request data:', { name, email });
     
     try {
         // Simple test first - just check if we can reach the backend
