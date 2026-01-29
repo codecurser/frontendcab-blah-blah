@@ -1,7 +1,10 @@
 // Detect environment and set appropriate BASE_URL
-const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-    ? "http://localhost:8080" 
-    : "https://unfair-skiagraphic-miranda.ngrok-free.dev"; // ngrok URL
+const CAB_API_BASE_URL_OVERRIDE = localStorage.getItem('CAB_API_BASE_URL');
+const BASE_URL = CAB_API_BASE_URL_OVERRIDE || (
+    window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? "http://localhost:8080"
+        : "http://unfair-skiagraphic-miranda.ngrok-free.dev"  // Try HTTP first
+); // ngrok URL
 
 async function readJsonOrText(response) {
     const contentType = response.headers.get('content-type') || '';
