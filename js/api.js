@@ -12,8 +12,14 @@ async function loginUser(userId) {
 async function registerUser(name, email) {
     console.log('Register user API call to:', `${BASE_URL}/users/register`);
     console.log('Request body:', { name, email });
+    console.log('BASE_URL being used:', BASE_URL);
     
     try {
+        // First test if the backend is reachable
+        console.log('Testing backend connectivity...');
+        const testResponse = await fetch(`${BASE_URL}/users/login?userId=1`);
+        console.log('Backend test response status:', testResponse.status);
+        
         const response = await fetch(`${BASE_URL}/users/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -29,6 +35,11 @@ async function registerUser(name, email) {
         return text;
     } catch (error) {
         console.error('API call failed:', error);
+        console.error('Error details:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack
+        });
         throw error;
     }
 }
