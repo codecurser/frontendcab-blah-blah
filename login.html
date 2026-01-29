@@ -50,7 +50,7 @@
             try {
                 const response = await loginUser(userId);
                 
-                if (response === true || response.success) {
+                if (response === true) {
                     saveUserId(userId);
                     showAlert('Login successful! Redirecting to dashboard...', 'success');
                     setTimeout(() => {
@@ -61,7 +61,7 @@
                 }
             } catch (error) {
                 console.error('Login error:', error);
-                showAlert('Login failed. Please try again.', 'error');
+                showAlert(`Login failed: ${error.message}`, 'error');
             } finally {
                 enableButton(loginBtn, originalText);
             }

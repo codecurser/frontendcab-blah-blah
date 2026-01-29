@@ -3,71 +3,73 @@ const BASE_URL = window.location.hostname === 'localhost' || window.location.hos
     ? "http://localhost:8080" 
     : "https://unfair-skiagraphic-miranda.ngrok-free.dev"; // ngrok URL
 
+async function readJsonOrText(response) {
+    const contentType = response.headers.get('content-type') || '';
+    const raw = await response.text();
+    const trimmed = raw.trim();
+    if (!trimmed) {
+        return '';
+    }
+    if (contentType.includes('application/json')) {
+        try {
+            return JSON.parse(trimmed);
+        } catch (_) {
+            return trimmed;
+        }
+    }
+    return trimmed;
+}
+
 // User APIs
 async function loginUser(userId) {
-    console.log('=== LOGIN DEBUG ===');
-    console.log('BASE_URL:', BASE_URL);
-    console.log('Full URL:', `${BASE_URL}/users/login?userId=${userId}`);
-    
-    try {
-        const response = await fetch(`${BASE_URL}/users/login?userId=${userId}`, {
-            method: 'POST',
-            headers: { 
-                'Accept': 'application/json'
-            },
-            mode: 'cors'
-        });
-        
-        console.log('Login response status:', response.status);
-        console.log('Login response ok:', response.ok);
-        
-        const result = await response.json();
-        console.log('Login response:', result);
-        
-        return result;
-    } catch (error) {
-        console.error('Login error:', error);
-        throw error;
+    const response = await fetch(`${BASE_URL}/users/login?userId=${encodeURIComponent(userId)}`, {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json, text/plain, */*'
+        },
+        mode: 'cors'
+    });
+
+    const body = await readJsonOrText(response);
+    if (!response.ok) {
+        throw new Error(typeof body === 'string' ? body : `Login failed (${response.status})`);
     }
+
+    if (typeof body === 'boolean') {
+        return body;
+    }
+    if (typeof body === 'number') {
+        return body === 1;
+    }
+    if (typeof body === 'string') {
+        return body.toLowerCase() === 'true' || body === '1';
+    }
+    return false;
 }
 
 async function registerUser(name, email) {
-    console.log('=== REGISTRATION DEBUG ===');
-    
-    try {
-        // Simple test first - just check if we can reach the backend
-        console.log('Testing basic connectivity...');
-        
-        const response = await fetch(`${BASE_URL}/users/register`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Accept': 'text/plain'
-            },
-            mode: 'cors',
-            body: JSON.stringify({ name, email })
-        });
-        
-        console.log('Response status:', response.status);
-        console.log('Response ok:', response.ok);
-        console.log('Response headers:', [...response.headers.entries()]);
-        
-        const text = await response.text();
-        console.log('Response body:', text);
-        
-        return text;
-    } catch (error) {
-        console.error('=== FETCH ERROR ===');
-        console.error('Error type:', error.name);
-        console.error('Error message:', error.message);
-        console.error('Full error:', error);
-        
-        // Additional debugging
-        console.log('User agent:', navigator.userAgent);
-        console.log('Current origin:', window.location.origin);
-        
-        throw error;
+    const response = await fetch(`${BASE_URL}/users/register`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json, text/plain, */*'
+        },
+        mode: 'cors',
+        body: JSON.stringify({ name, email })
+    });
+
+    const body = await readJsonOrText(response);
+    if (!response.ok) {
+        throw new Error(typeof body === 'string' ? body : `Registration failed (${response.status})`);
     }
+
+    if (typeof body === 'number') {
+        return String(body);
+    }
+    if (typeof body === 'string') {
+        return body;
+    }
+    return '';
 }
 
 // Ride APIs
@@ -189,3 +191,14 @@ function enableButton(button, originalText) {
     button.disabled = false;
     button.textContent = originalText;
 }
+
+// Helper to set backend URL from browser console
+// Usage: setBackendUrl('https://abc123.loca.lt')
+function setBackendUrl(url) {
+    localStorage.setItem('CAB_API_BASE_URL', url);
+    console.log('Backend URL updated to:', url);
+    console.log('Refresh the page to apply changes.');
+}
+
+// Expose helper globally
+window.setBackendUrl = setBackendUrl;
