@@ -21,6 +21,7 @@
             </div>
             
             <div class="dashboard-grid">
+                
                 <div class="dashboard-card" onclick="window.location.href='publish-ride.html'">
                     <h3>🚗 Publish Ride</h3>
                     <p>Offer a ride to others</p>
@@ -54,6 +55,9 @@
             if (!checkAuth()) {
                 return;
             }
+            
+            const userId = getUserId();
+            document.getElementById('userIdDisplay').textContent = userId;
         });
     </script>
 </body>
