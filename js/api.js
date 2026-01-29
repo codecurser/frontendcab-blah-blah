@@ -10,12 +10,27 @@ async function loginUser(userId) {
 }
 
 async function registerUser(name, email) {
-    const response = await fetch(`${BASE_URL}/users/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email })
-    });
-    return await response.text(); // Returns userId as string
+    console.log('Register user API call to:', `${BASE_URL}/users/register`);
+    console.log('Request body:', { name, email });
+    
+    try {
+        const response = await fetch(`${BASE_URL}/users/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email })
+        });
+        
+        console.log('Response status:', response.status);
+        console.log('Response headers:', response.headers);
+        
+        const text = await response.text();
+        console.log('Response text:', text);
+        
+        return text;
+    } catch (error) {
+        console.error('API call failed:', error);
+        throw error;
+    }
 }
 
 // Ride APIs

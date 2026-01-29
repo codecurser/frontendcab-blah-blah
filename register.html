@@ -54,7 +54,9 @@
             disableButton(registerBtn);
             
             try {
+                console.log('Attempting registration with:', { name, email });
                 const response = await registerUser(name, email);
+                console.log('Registration response:', response);
                 
                 if (response && response.trim() !== '') {
                     const userId = response.trim();
@@ -68,7 +70,7 @@
                 }
             } catch (error) {
                 console.error('Registration error:', error);
-                showAlert('Registration failed. Please try again.', 'error');
+                showAlert(`Registration failed: ${error.message}`, 'error');
             } finally {
                 enableButton(registerBtn, originalText);
             }
