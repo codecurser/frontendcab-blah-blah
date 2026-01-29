@@ -10,36 +10,43 @@ async function loginUser(userId) {
 }
 
 async function registerUser(name, email) {
-    console.log('Register user API call to:', `${BASE_URL}/users/register`);
-    console.log('Request body:', { name, email });
-    console.log('BASE_URL being used:', BASE_URL);
+    console.log('=== REGISTRATION DEBUG ===');
+    console.log('BASE_URL:', BASE_URL);
+    console.log('Full URL:', `${BASE_URL}/users/register`);
+    console.log('Request data:', { name, email });
     
     try {
-        // First test if the backend is reachable
-        console.log('Testing backend connectivity...');
-        const testResponse = await fetch(`${BASE_URL}/users/login?userId=1`);
-        console.log('Backend test response status:', testResponse.status);
+        // Simple test first - just check if we can reach the backend
+        console.log('Testing basic connectivity...');
         
         const response = await fetch(`${BASE_URL}/users/register`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'text/plain'
+            },
+            mode: 'cors',
             body: JSON.stringify({ name, email })
         });
         
         console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
+        console.log('Response ok:', response.ok);
+        console.log('Response headers:', [...response.headers.entries()]);
         
         const text = await response.text();
-        console.log('Response text:', text);
+        console.log('Response body:', text);
         
         return text;
     } catch (error) {
-        console.error('API call failed:', error);
-        console.error('Error details:', {
-            message: error.message,
-            name: error.name,
-            stack: error.stack
-        });
+        console.error('=== FETCH ERROR ===');
+        console.error('Error type:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Full error:', error);
+        
+        // Additional debugging
+        console.log('User agent:', navigator.userAgent);
+        console.log('Current origin:', window.location.origin);
+        
         throw error;
     }
 }
