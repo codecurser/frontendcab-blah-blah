@@ -35,6 +35,7 @@ async function loginUser(userId) {
         throw new Error(typeof body === 'string' ? body : `Login failed (${response.status})`);
     }
 
+    // Backend returns boolean, handle different response types
     if (typeof body === 'boolean') {
         return body;
     }
@@ -63,6 +64,7 @@ async function registerUser(name, email) {
         throw new Error(typeof body === 'string' ? body : `Registration failed (${response.status})`);
     }
 
+    // Backend returns int (userId), convert to string
     if (typeof body === 'number') {
         return String(body);
     }

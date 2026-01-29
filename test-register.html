@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registration Test</title>
+</head>
+<body>
+    <h1>Registration Test</h1>
+    <form onsubmit="testRegister(event)">
+        <input type="text" id="name" placeholder="Name" required><br><br>
+        <input type="email" id="email" placeholder="Email" required><br><br>
+        <button type="submit">Test Registration</button>
+    </form>
+    <div id="result"></div>
+
+    <script src="js/api.js"></script>
+    <script>
+        async function testRegister(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing registration...';
+            
+            try {
+                console.log('Testing registration with:', { name, email });
+                const result = await registerUser(name, email);
+                console.log('Registration result:', result);
+                
+                if (result && result.trim() !== '') {
+                    resultDiv.innerHTML = `✅ Registration successful! User ID: ${result}`;
+                } else {
+                    resultDiv.innerHTML = '❌ Registration failed. No User ID returned.';
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
