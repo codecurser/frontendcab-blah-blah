@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bookings API Test</title>
+</head>
+<body>
+    <h1>Bookings API Test</h1>
+    
+    <h3>Test My Bookings</h3>
+    <input type="text" id="userId" placeholder="User ID" value="1">
+    <button onclick="testMyBookings()">Test My Bookings</button>
+    <div id="myBookingsResult"></div>
+    
+    <h3>Test Book Ride</h3>
+    <input type="text" id="rideId" placeholder="Ride ID" value="7">
+    <input type="text" id="seats" placeholder="Seats" value="1">
+    <button onclick="testBookRide()">Test Book Ride</button>
+    <div id="bookResult"></div>
+
+    <script src="js/api.js"></script>
+    <script>
+        async function testMyBookings() {
+            const userId = document.getElementById('userId').value;
+            const resultDiv = document.getElementById('myBookingsResult');
+            resultDiv.innerHTML = 'Testing my bookings...';
+            
+            try {
+                console.log('Testing my bookings for userId:', userId);
+                const result = await getMyBookings(userId);
+                console.log('My bookings result:', result);
+                
+                if (Array.isArray(result)) {
+                    resultDiv.innerHTML = `✅ Found ${result.length} bookings: <pre>${JSON.stringify(result, null, 2)}</pre>`;
+                } else {
+                    resultDiv.innerHTML = `❌ Unexpected result: ${JSON.stringify(result)}`;
+                }
+            } catch (error) {
+                console.error('My bookings error:', error);
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+        
+        async function testBookRide() {
+            const rideId = document.getElementById('rideId').value;
+            const seats = document.getElementById('seats').value;
+            const userId = document.getElementById('userId').value;
+            const resultDiv = document.getElementById('bookResult');
+            resultDiv.innerHTML = 'Testing book ride...';
+            
+            try {
+                console.log('Testing book ride:', { rideId, userId, seats });
+                const result = await bookRide({
+                    rideId: rideId,
+                    userId: userId,
+                    seatsBooked: parseInt(seats)
+                });
+                console.log('Book ride result:', result);
+                
+                resultDiv.innerHTML = `✅ Booking result: ${result}`;
+            } catch (error) {
+                console.error('Book ride error:', error);
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

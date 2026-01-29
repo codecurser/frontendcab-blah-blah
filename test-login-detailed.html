@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detailed Login Test</title>
+</head>
+<body>
+    <h1>Detailed Login Test</h1>
+    <form onsubmit="testLogin(event)">
+        <input type="text" id="userId" placeholder="User ID" value="1" required>
+        <button type="submit">Test Login</button>
+    </form>
+    <div id="result"></div>
+
+    <script src="js/api.js"></script>
+    <script>
+        async function testLogin(event) {
+            event.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing login...';
+            
+            try {
+                console.log('=== DETAILED LOGIN TEST ===');
+                console.log('User ID:', userId);
+                console.log('BASE_URL:', window.BASE_URL || 'Not accessible');
+                
+                // Test the exact URL that will be called
+                const testUrl = `${window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? "http://localhost:8080" : "https://unfair-skiagraphic-miranda.ngrok-free.dev"}/users/login?userId=${encodeURIComponent(userId)}`;
+                console.log('Test URL:', testUrl);
+                
+                const result = await loginUser(userId);
+                console.log('Final login result:', result, 'Type:', typeof result);
+                
+                if (result === true) {
+                    resultDiv.innerHTML = `✅ Login successful! Result: ${result} (type: ${typeof result})`;
+                } else {
+                    resultDiv.innerHTML = `❌ Login failed. Result: ${result} (type: ${typeof result})`;
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

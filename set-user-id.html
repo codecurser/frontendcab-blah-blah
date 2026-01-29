@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Set User ID for Testing</title>
+</head>
+<body>
+    <h1>Set User ID for Testing</h1>
+    <p>This will set the User ID in localStorage so you can test the My Rides page.</p>
+    
+    <form onsubmit="setUserId(event)">
+        <input type="text" id="userId" placeholder="User ID" value="4" required>
+        <button type="submit">Set User ID</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <h3>Quick Links:</h3>
+    <ul>
+        <li><a href="my-rides.html">Go to My Rides</a></li>
+        <li><a href="my-bookings.html">Go to My Bookings</a></li>
+        <li><a href="dashboard.html">Go to Dashboard</a></li>
+    </ul>
+
+    <script src="js/api.js"></script>
+    <script>
+        function setUserId(event) {
+            event.preventDefault();
+            
+            const userId = document.getElementById('userId').value;
+            const resultDiv = document.getElementById('result');
+            
+            saveUserId(userId);
+            resultDiv.innerHTML = `✅ User ID set to: ${userId}`;
+            console.log('User ID set in localStorage:', userId);
+        }
+        
+        // Show current user ID
+        window.addEventListener('load', function() {
+            const currentUserId = getUserId();
+            if (currentUserId) {
+                document.getElementById('result').innerHTML = `Current User ID: ${currentUserId}`;
+            }
+        });
+    </script>
+</body>
+</html>
