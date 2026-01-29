@@ -31,20 +31,27 @@ async function loginUser(userId) {
     });
 
     const body = await readJsonOrText(response);
+    console.log('Login raw response:', body, 'Type:', typeof body);
+    
     if (!response.ok) {
         throw new Error(typeof body === 'string' ? body : `Login failed (${response.status})`);
     }
 
     // Backend returns boolean, handle different response types
     if (typeof body === 'boolean') {
+        console.log('Login result (boolean):', body);
         return body;
     }
     if (typeof body === 'number') {
+        console.log('Login result (number):', body, 'as boolean:', body === 1);
         return body === 1;
     }
     if (typeof body === 'string') {
-        return body.toLowerCase() === 'true' || body === '1';
+        const result = body.toLowerCase() === 'true' || body === '1';
+        console.log('Login result (string):', body, 'as boolean:', result);
+        return result;
     }
+    console.log('Login result (fallback): false');
     return false;
 }
 
@@ -91,7 +98,7 @@ async function publishRide(rideData) {
 }
 
 async function searchRides(source, destination) {
-    const response = await fetch(`${BASE_URL}/rides/search?source=${source}&destination=${destination}`);
+    const response = await fetch(`${BASE_URL}/rides/search?source=${encodeURIComponent(source)}&destination=${encodeURIComponent(destination)}`);
     return await response.json();
 }
 
@@ -101,13 +108,15 @@ async function getAllRides() {
 }
 
 async function getMyRides(userId) {
-    const response = await fetch(`${BASE_URL}/rides/my?userId=${userId}`);
+    const response = await fetch(`${BASE_URL}/rides/my?userId=${encodeURIComponent(userId)}`);
     return await response.json();
 }
 
 async function cancelRide(rideId) {
-    const response = await fetch(`${BASE_URL}/rides/cancel?rideId=${rideId}`, {
-        method: 'POST'
+    const response = await fetch(`${BASE_URL}/rides/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rideId: parseInt(rideId) })
     });
     return await response.text();
 }

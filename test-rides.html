@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rides Test</title>
+</head>
+<body>
+    <h1>Rides API Test</h1>
+    
+    <h3>Test My Rides</h3>
+    <input type="text" id="userId" placeholder="User ID" value="1">
+    <button onclick="testMyRides()">Test My Rides</button>
+    <div id="myRidesResult"></div>
+    
+    <h3>Test Search Rides</h3>
+    <input type="text" id="source" placeholder="Source" value="Noida">
+    <input type="text" id="destination" placeholder="Destination" value="Delhi">
+    <button onclick="testSearchRides()">Test Search Rides</button>
+    <div id="searchResult"></div>
+
+    <script src="js/api.js"></script>
+    <script>
+        async function testMyRides() {
+            const userId = document.getElementById('userId').value;
+            const resultDiv = document.getElementById('myRidesResult');
+            resultDiv.innerHTML = 'Testing my rides...';
+            
+            try {
+                console.log('Testing my rides for userId:', userId);
+                const result = await getMyRides(userId);
+                console.log('My rides result:', result);
+                
+                if (Array.isArray(result)) {
+                    resultDiv.innerHTML = `✅ Found ${result.length} rides: <pre>${JSON.stringify(result, null, 2)}</pre>`;
+                } else {
+                    resultDiv.innerHTML = `❌ Unexpected result: ${JSON.stringify(result)}`;
+                }
+            } catch (error) {
+                console.error('My rides error:', error);
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+        
+        async function testSearchRides() {
+            const source = document.getElementById('source').value;
+            const destination = document.getElementById('destination').value;
+            const resultDiv = document.getElementById('searchResult');
+            resultDiv.innerHTML = 'Testing search rides...';
+            
+            try {
+                console.log('Testing search rides:', { source, destination });
+                const result = await searchRides(source, destination);
+                console.log('Search rides result:', result);
+                
+                if (Array.isArray(result)) {
+                    resultDiv.innerHTML = `✅ Found ${result.length} rides: <pre>${JSON.stringify(result, null, 2)}</pre>`;
+                } else {
+                    resultDiv.innerHTML = `❌ Unexpected result: ${JSON.stringify(result)}`;
+                }
+            } catch (error) {
+                console.error('Search rides error:', error);
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
