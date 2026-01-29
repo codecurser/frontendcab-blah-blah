@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Backend Test</title>
+</head>
+<body>
+    <h1>Backend Connection Test</h1>
+    <button onclick="testBackend()">Test Backend</button>
+    <div id="result"></div>
+
+    <script>
+        async function testBackend() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                // Test with different URLs
+                const urls = [
+                    'https://unfair-skiagraphic-miranda.ngrok-free.dev/users/login?userId=1',
+                    'http://unfair-skiagraphic-miranda.ngrok-free.dev/users/login?userId=1'
+                ];
+                
+                for (const url of urls) {
+                    try {
+                        console.log('Testing:', url);
+                        const response = await fetch(url, {
+                            method: 'POST',
+                            mode: 'cors'
+                        });
+                        console.log('Response:', response);
+                        resultDiv.innerHTML += `<br>✅ ${url} - Status: ${response.status}`;
+                    } catch (error) {
+                        console.error('Error for', url, error);
+                        resultDiv.innerHTML += `<br>❌ ${url} - Error: ${error.message}`;
+                    }
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
