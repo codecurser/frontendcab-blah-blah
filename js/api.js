@@ -1,4 +1,7 @@
-const BASE_URL = "http://localhost:8080";
+// Detect environment and set appropriate BASE_URL
+const BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? "http://localhost:8080" 
+    : "https://your-backend-url.com"; // Replace this with your deployed backend URL
 
 // User APIs
 async function loginUser(userId) {
@@ -12,7 +15,7 @@ async function registerUser(name, email) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, email })
     });
-    return await response.json();
+    return await response.text(); // Returns userId as string
 }
 
 // Ride APIs
@@ -20,13 +23,24 @@ async function publishRide(rideData) {
     const response = await fetch(`${BASE_URL}/rides/publish`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(rideData)
+        body: JSON.stringify({
+            userId: parseInt(rideData.userId),
+            source: rideData.source,
+            destination: rideData.destination,
+            seats: rideData.totalSeats,
+            fare: rideData.farePerSeat
+        })
     });
-    return await response.json();
+    return await response.text();
 }
 
 async function searchRides(source, destination) {
     const response = await fetch(`${BASE_URL}/rides/search?source=${source}&destination=${destination}`);
+    return await response.json();
+}
+
+async function getAllRides() {
+    const response = await fetch(`${BASE_URL}/rides/all`);
     return await response.json();
 }
 
@@ -39,29 +53,38 @@ async function cancelRide(rideId) {
     const response = await fetch(`${BASE_URL}/rides/cancel?rideId=${rideId}`, {
         method: 'POST'
     });
-    return await response.json();
+    return await response.text();
 }
 
 // Booking APIs
 async function bookRide(bookingData) {
-    const response = await fetch(`${BASE_URL}/booking/book`, {
+    const response = await fetch(`${BASE_URL}/bookings/book`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bookingData)
+        body: JSON.stringify({
+            rideId: parseInt(bookingData.rideId),
+            userId: parseInt(bookingData.userId),
+            seats: bookingData.seatsBooked
+        })
     });
-    return await response.json();
+    return await response.text();
 }
 
 async function getMyBookings(userId) {
-    const response = await fetch(`${BASE_URL}/booking/my?userId=${userId}`);
+    const response = await fetch(`${BASE_URL}/bookings/my?userId=${userId}`);
     return await response.json();
 }
 
-async function cancelBooking(bookingId, userId) {
-    const response = await fetch(`${BASE_URL}/booking/cancel?bookingId=${bookingId}&userId=${userId}`, {
-        method: 'POST'
+async function cancelBooking(bookingData) {
+    const response = await fetch(`${BASE_URL}/bookings/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            bookingId: parseInt(bookingData.bookingId),
+            userId: parseInt(bookingData.userId)
+        })
     });
-    return await response.json();
+    return await response.text();
 }
 
 // Utility functions

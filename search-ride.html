@@ -81,8 +81,8 @@
             try {
                 const response = await searchRides(source, destination);
                 
-                if (response.success || Array.isArray(response)) {
-                    availableRides = Array.isArray(response) ? response : response.rides || [];
+                if (Array.isArray(response)) {
+                    availableRides = response;
                     displayRides(availableRides);
                     
                     if (availableRides.length === 0) {
@@ -92,7 +92,7 @@
                         showAlert(`Found ${availableRides.length} ride(s)`, 'success');
                     }
                 } else {
-                    showAlert(response.message || 'No rides found', 'error');
+                    showAlert('No rides found', 'error');
                     document.getElementById('searchResults').style.display = 'none';
                 }
             } catch (error) {
@@ -110,20 +110,20 @@
             rides.forEach(ride => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${ride.rideId}</td>
+                    <td>${ride.id}</td>
                     <td>${ride.source} → ${ride.destination}</td>
-                    <td>${ride.availableSeats || ride.seatsAvailable}</td>
+                    <td>${ride.seats}</td>
                     <td>$${ride.farePerSeat}</td>
                     <td>
                         <input type="number" 
-                               id="seats-${ride.rideId}" 
+                               id="seats-${ride.id}" 
                                min="1" 
-                               max="${ride.availableSeats || ride.seatsAvailable}" 
+                               max="${ride.seats}" 
                                value="1" 
                                style="width: 80px; padding: 5px;">
                     </td>
                     <td>
-                        <button class="btn btn-success" onclick="bookRide('${ride.rideId}')">
+                        <button class="btn btn-success" onclick="bookRide('${ride.id}')">
                             Book Ride
                         </button>
                     </td>
@@ -137,14 +137,14 @@
         async function bookRide(rideId) {
             const seatsInput = document.getElementById(`seats-${rideId}`);
             const seatsToBook = parseInt(seatsInput.value);
-            const ride = availableRides.find(r => r.rideId === rideId);
+            const ride = availableRides.find(r => r.id === rideId);
             
             if (!seatsToBook || seatsToBook < 1) {
                 showAlert('Please enter valid number of seats', 'error');
                 return;
             }
             
-            if (seatsToBook > (ride.availableSeats || ride.seatsAvailable)) {
+            if (seatsToBook > ride.seats) {
                 showAlert('Not enough seats available', 'error');
                 return;
             }
@@ -158,22 +158,22 @@
             try {
                 const userId = getUserId();
                 const bookingData = {
-                    userId: userId,
                     rideId: rideId,
+                    userId: userId,
                     seatsBooked: seatsToBook
                 };
                 
                 const response = await bookRide(bookingData);
                 
-                if (response.success || response.bookingId) {
-                    showAlert(`Booking successful! Booking ID: ${response.bookingId || response.bookingId}. Total fare: $${totalFare.toFixed(2)}`, 'success');
+                if (response && response.includes('successful')) {
+                    showAlert(`Booking successful! ${response}`, 'success');
                     
                     // Refresh the search results to update available seats
                     setTimeout(() => {
                         document.getElementById('searchRideForm').dispatchEvent(new Event('submit'));
                     }, 2000);
                 } else {
-                    showAlert(response.message || 'Booking failed. Please try again.', 'error');
+                    showAlert('Booking failed. Please try again.', 'error');
                 }
             } catch (error) {
                 console.error('Book ride error:', error);

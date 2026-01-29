@@ -90,13 +90,13 @@
                 
                 const response = await publishRide(rideData);
                 
-                if (response.success || response.rideId) {
+                if (response && response.includes('successfully')) {
                     showAlert('Ride published successfully! Redirecting to dashboard...', 'success');
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
                     }, 2000);
                 } else {
-                    showAlert(response.message || 'Failed to publish ride. Please try again.', 'error');
+                    showAlert('Failed to publish ride. Please try again.', 'error');
                 }
             } catch (error) {
                 console.error('Publish ride error:', error);

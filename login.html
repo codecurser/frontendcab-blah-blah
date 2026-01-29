@@ -50,14 +50,14 @@
             try {
                 const response = await loginUser(userId);
                 
-                if (response.success || response.userId) {
+                if (response === true || response.success) {
                     saveUserId(userId);
                     showAlert('Login successful! Redirecting to dashboard...', 'success');
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
                     }, 1500);
                 } else {
-                    showAlert(response.message || 'Login failed. Please check your User ID.', 'error');
+                    showAlert('Login failed. Please check your User ID.', 'error');
                 }
             } catch (error) {
                 console.error('Login error:', error);

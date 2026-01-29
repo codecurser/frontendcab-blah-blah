@@ -56,15 +56,15 @@
             try {
                 const response = await registerUser(name, email);
                 
-                if (response.success || response.userId) {
-                    const userId = response.userId || response.userId;
+                if (response && response.trim() !== '') {
+                    const userId = response.trim();
                     saveUserId(userId);
                     showAlert(`Registration successful! Your User ID is: ${userId}. Redirecting to dashboard...`, 'success');
                     setTimeout(() => {
                         window.location.href = 'dashboard.html';
                     }, 3000);
                 } else {
-                    showAlert(response.message || 'Registration failed. Please try again.', 'error');
+                    showAlert('Registration failed. Please try again.', 'error');
                 }
             } catch (error) {
                 console.error('Registration error:', error);

@@ -55,8 +55,8 @@
                 const userId = getUserId();
                 const response = await getMyRides(userId);
                 
-                if (response.success || Array.isArray(response)) {
-                    const rides = Array.isArray(response) ? response : response.rides || [];
+                if (Array.isArray(response)) {
+                    const rides = response;
                     displayMyRides(rides);
                     
                     if (rides.length === 0) {
@@ -64,7 +64,7 @@
                             '<tr><td colspan="6" style="text-align: center;">No rides published yet</td></tr>';
                     }
                 } else {
-                    showAlert(response.message || 'Failed to load rides', 'error');
+                    showAlert('Failed to load rides', 'error');
                     document.getElementById('myRidesTableBody').innerHTML = 
                         '<tr><td colspan="6" style="text-align: center;">Failed to load rides</td></tr>';
                 }
@@ -86,9 +86,9 @@
                 const canCancel = status === 'OPEN';
                 
                 row.innerHTML = `
-                    <td>${ride.rideId}</td>
+                    <td>${ride.id}</td>
                     <td>${ride.source} → ${ride.destination}</td>
-                    <td>${ride.availableSeats || ride.seatsLeft}</td>
+                    <td>${ride.seats}</td>
                     <td>$${ride.farePerSeat}</td>
                     <td>
                         <span style="color: ${status === 'OPEN' ? 'green' : 'red'}; font-weight: bold;">
@@ -97,7 +97,7 @@
                     </td>
                     <td>
                         ${canCancel ? 
-                            `<button class="btn btn-danger" onclick="cancelRide('${ride.rideId}')">
+                            `<button class="btn btn-danger" onclick="cancelRide('${ride.id}')">
                                 Cancel Ride
                             </button>` : 
                             '<span style="color: #888;">Cannot cancel</span>'
@@ -116,14 +116,14 @@
             try {
                 const response = await cancelRide(rideId);
                 
-                if (response.success) {
+                if (response && response.includes('successfully')) {
                     showAlert('Ride cancelled successfully', 'success');
                     // Refresh the rides list
                     setTimeout(() => {
                         loadMyRides();
                     }, 1000);
                 } else {
-                    showAlert(response.message || 'Failed to cancel ride', 'error');
+                    showAlert('Failed to cancel ride', 'error');
                 }
             } catch (error) {
                 console.error('Cancel ride error:', error);
